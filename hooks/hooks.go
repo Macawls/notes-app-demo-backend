@@ -8,4 +8,5 @@ import (
 
 func Bind(app core.App) {
 	app.OnRecordCreateRequest("notes").BindFunc(notes.CheckContentProfanity)
+	app.OnRecordCreateRequest("notes").BindFunc(notes.CheckContentGibberish)
 }
