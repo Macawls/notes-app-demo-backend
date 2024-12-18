@@ -582,7 +582,7 @@ func init() {
 						"body": "<p>Hello,</p>\n<p>We noticed a login to your {APP_NAME} account from a new location.</p>\n<p>If this was you, you may disregard this email.</p>\n<p><strong>If this wasn't you, you should immediately change your {APP_NAME} account password to revoke access from all other locations.</strong></p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>",
 						"subject": "Login from a new location"
 					},
-					"enabled": true
+					"enabled": false
 				},
 				"authRule": "",
 				"authToken": {
@@ -673,7 +673,7 @@ func init() {
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 255,
-						"min": 0,
+						"min": 3,
 						"name": "name",
 						"pattern": "",
 						"presentable": false,
@@ -686,12 +686,10 @@ func init() {
 						"hidden": false,
 						"id": "file376926767",
 						"maxSelect": 1,
-						"maxSize": 0,
+						"maxSize": 1048576,
 						"mimeTypes": [
 							"image/jpeg",
 							"image/png",
-							"image/svg+xml",
-							"image/gif",
 							"image/webp"
 						],
 						"name": "avatar",
@@ -809,7 +807,7 @@ func init() {
 						"minSelect": 0,
 						"name": "user",
 						"presentable": false,
-						"required": false,
+						"required": true,
 						"system": false,
 						"type": "relation"
 					},
@@ -1149,7 +1147,7 @@ func init() {
 				"system": false,
 				"type": "view",
 				"updateRule": null,
-				"viewQuery": "SELECT \n    nr.note AS id, \n    JSON_GROUP_ARRAY(\n        JSON_OBJECT(\n            'iconify_id', r.iconify_id, \n            'users', (\n                SELECT JSON_GROUP_ARRAY(u.name)\n                FROM users u\n                WHERE u.id IN (\n                    SELECT nr_sub.user\n                    FROM note_reactions nr_sub\n                    WHERE nr_sub.note = nr.note AND nr_sub.reaction = r.id\n                )\n            )\n        )\n        ORDER BY r.iconify_id  -- frontend consistency\n    ) AS reactions\nFROM \n    (SELECT DISTINCT note, reaction FROM note_reactions) nr\nJOIN \n    reactions r ON nr.reaction = r.id\nGROUP BY \n    nr.note;",
+				"viewQuery": "SELECT \n    nr.note AS id, \n    JSON_GROUP_ARRAY(\n        JSON_OBJECT(\n            'iconify_id', r.iconify_id, \n            'users', (\n                SELECT JSON_GROUP_ARRAY(\n                    CASE \n                        WHEN u.id IS NOT NULL THEN u.name\n                        ELSE 'unknown' \n                    END\n                )\n                FROM note_reactions nr_sub\n                LEFT JOIN users u ON nr_sub.user = u.id\n                WHERE nr_sub.note = nr.note AND nr_sub.reaction = r.id\n            )\n        )\n        ORDER BY r.iconify_id  --frontend consistency\n    ) AS reactions\nFROM \n    (SELECT DISTINCT note, reaction FROM note_reactions) nr\nJOIN \n    reactions r ON nr.reaction = r.id\nGROUP BY \n    nr.note;",
 				"viewRule": ""
 			}
 		]`
